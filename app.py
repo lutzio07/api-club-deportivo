@@ -1,0 +1,12 @@
+from flask import Flask
+from api_club.routes.deportes import deportes_bp
+
+app = Flask(__name__)
+app.register_blueprint(deportes_bp)
+
+@app.route("/")
+def index():
+    return "Indice de la API del club deportivo"
+
+if __name__ == '__main__':
+    app.run(port=5000, debug=True)
