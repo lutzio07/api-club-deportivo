@@ -17,6 +17,31 @@ def get_canchas():
 @canchas_bp.route('/canchas', methods=['POST'])
 def post_canchas():
     datos = request.get_json()
+
+    if "nombre" not in datos:
+        return jsonify({"errors": [{
+            "code": "ERROR_VALIDACION",
+            "message": "El cuerpo de la solicitud no es valido.",
+            "level": "error",
+            "description": "El campo 'nombre' es obligatorio"
+        }]}), 400
+
+    if "id_deporte" not in datos:
+        return jsonify({"errors": [{
+            "code": "ERROR_VALIDACION",
+            "message": "El cuerpo de la solicitud no es valido.",
+            "level": "error",
+            "description": "El campo 'id_deporte' es obligatorio"
+        }]}), 400
+    
+    if "precio_hora" not in datos:
+        return jsonify({"errors": [{
+            "code": "ERROR_VALIDACION",
+            "message": "El cuerpo de la solicitud no es valido.",
+            "level": "error",
+            "description": "El campo 'precio_hora' es obligatorio"
+        }]}), 400
+    
     nombre = datos["nombre"]
     id_deporte = datos["id_deporte"]
     precio_hora = datos["precio_hora"]
