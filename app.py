@@ -1,8 +1,11 @@
 from flask import Flask
 from api_club.routes.deportes import deportes_bp
+from api_club.routes.canchas import canchas_bp
 
 app = Flask(__name__)
+
 app.register_blueprint(deportes_bp)
+app.register_blueprint(canchas_bp)
 
 @app.route("/")
 def index():
