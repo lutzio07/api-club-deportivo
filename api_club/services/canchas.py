@@ -6,3 +6,6 @@ def listar_canchas():
 
 def agregar_cancha(nombre,id_deporte,precio_hora,techada,activa):
     return canchas_repo.crear_cancha(nombre,id_deporte,precio_hora,techada,activa)
+
+def verificar_deporte(id_deporte):
+    return canchas_repo.existe_deporte(id_deporte)

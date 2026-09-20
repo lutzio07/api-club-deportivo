@@ -105,6 +105,13 @@ def post_canchas():
                 "description": "El campo 'activa' debe ser de tipo bool."
         }]}), 400
 
-
+    if not canchas_service.verificar_deporte(id_deporte):
+        return jsonify({"errors": [{
+                "code": "DEPORTE_NO_ENCONTRADO",
+                "message": "El recurso no se encontro",
+                "level": "error",
+                "description": "El campo 'id_deporte' no corresponde a ningun deporte existente."
+        }]}), 404
+    
     nuevo_id = canchas_service.agregar_cancha(nombre,id_deporte,precio_hora,techada,activa)
     return "", 201
