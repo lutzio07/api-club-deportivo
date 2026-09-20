@@ -18,7 +18,7 @@ def get_canchas():
 def post_canchas():
     datos = request.get_json(silent=True)
 
-    if datos is None:
+    if not isinstance(datos,dict):
         return jsonify({"errors": [{
                     "code": "ERROR_VALIDACION",
                     "message": "El cuerpo de la solicitud no es valido.",
@@ -56,6 +56,55 @@ def post_canchas():
     precio_hora = datos["precio_hora"]
     techada = datos.get("techada", False)
     activa = datos.get("activa", True)
+
+    if not isinstance(nombre,str):
+        return jsonify({"errors": [{
+                "code": "ERROR_VALIDACION",
+                "message": "El cuerpo de la solicitud no es valido.",
+                "level": "error",
+                "description": "El campo  'nombre' debe ser de tipo string."
+        }]}), 400
+
+    if not isinstance(id_deporte,int) or isinstance(id_deporte,bool):
+        return jsonify({"errors": [{
+                "code": "ERROR_VALIDACION",
+                "message": "El cuerpo de la solicitud no es valido.",
+                "level": "error",
+                "description": "El campo 'id_deporte' debe ser de tipo entero."
+        }]}), 400
+
+    if not isinstance(precio_hora,int) or isinstance(precio_hora,bool):
+        return jsonify({"errors": [{
+                "code": "ERROR_VALIDACION",
+                "message": "El cuerpo de la solicitud no es valido.",
+                "level": "error",
+                "description": "El campo 'precio_hora' debe ser de tipo entero."
+        }]}), 400
+
+    if precio_hora <= 0:
+            return jsonify({"errors": [{
+                    "code": "ERROR_VALIDACION",
+                    "message": "El cuerpo de la solicitud no es valido.",
+                    "level": "error",
+                    "description": "El campo 'precio_hora' debe ser mayor a cero."
+            }]}), 400
+    
+    if not isinstance(techada,bool):
+        return jsonify({"errors": [{
+                "code": "ERROR_VALIDACION",
+                "message": "El cuerpo de la solicitud no es valido.",
+                "level": "error",
+                "description": "El campo 'techada' debe ser de tipo bool."
+        }]}), 400
+
+    if not isinstance(activa,bool):
+        return jsonify({"errors": [{
+                "code": "ERROR_VALIDACION",
+                "message": "El cuerpo de la solicitud no es valido.",
+                "level": "error",
+                "description": "El campo 'activa' debe ser de tipo bool."
+        }]}), 400
+
 
     nuevo_id = canchas_service.agregar_cancha(nombre,id_deporte,precio_hora,techada,activa)
     return "", 201
