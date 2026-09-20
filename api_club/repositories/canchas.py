@@ -24,3 +24,19 @@ def obtener_todas():
     conexion.close()
 
     return canchas
+
+def crear_cancha(nombre,id_deporte,precio_hora,techada,activa):
+    conexion = obtener_conexion()
+    cursor =conexion.cursor()
+    cursor.execute("""
+        INSERT INTO canchas(nombre,id_deporte,precio_hora,techada,activa) VALUES (%s,%s,%s,%s,%s)
+    """,(nombre,id_deporte,precio_hora,techada,activa))
+
+    nuevo_id = cursor.lastrowid
+
+    conexion.commit()
+    
+    cursor.close()
+    conexion.close()
+    
+    return nuevo_id
