@@ -40,3 +40,23 @@ def crear_cancha(nombre,id_deporte,precio_hora,techada,activa):
     conexion.close()
     
     return nuevo_id
+
+def existe_deporte(id_deporte):
+    conexion = obtener_conexion()
+    
+    cursor = conexion.cursor(dictionary=True)
+    
+    cursor.execute("""
+        SELECT
+        id,
+        nombre
+        FROM deportes
+        WHERE id = %s
+    """,(id_deporte,))
+    
+    resultado_deporte_encontrado = cursor.fetchone()
+    
+    cursor.close()
+    conexion.close()
+    
+    return resultado_deporte_encontrado is not None
