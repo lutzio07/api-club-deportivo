@@ -126,7 +126,7 @@ def get_canchas():
 
     return jsonify({
         "canchas": canchas,
-        **enlaces
+        "_links": enlaces
     })
 
 
