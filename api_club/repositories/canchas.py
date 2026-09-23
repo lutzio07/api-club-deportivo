@@ -144,3 +144,17 @@ def existe_deporte(id_deporte):
     conexion.close()
 
     return resultado is not None
+
+
+def obtener_datos_cancha(id_cancha):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM canchas WHERE id = %s", (id_cancha,))
+    cancha = cursor.fetchone()
+    cursor.close()
+    conexion.close()
+    return cancha
+
+
+
+

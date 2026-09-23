@@ -159,3 +159,21 @@ def crear_cancha():
         "techada": datos['techada'],
         "activa": datos['activa']
     }), 201
+
+@canchas_bp.route('/canchas/<id_cancha>', methods=['GET'])
+def obtener_cancha(id_cancha):
+    try:
+        id_cancha = int(id_cancha)
+    except ValueError:
+        return jsonify({"error": "El ID debe ser un número entero."}), 400
+    cancha = canchas_service.obtener_cancha_por_id(id_cancha)
+    if not cancha:
+        respuesta = jsonify({"error": "No se encontró la cancha con ese id."}), 404       
+        return respuesta
+    else:
+        cancha = jsonify(cancha)
+        return cancha, 200
+    
+    
+
+

@@ -10,6 +10,5 @@ app.register_blueprint(canchas_bp)
 @app.route("/")
 def index():
     return "Indice de la API del club deportivo"
-
 if __name__ == '__main__':
     app.run(port=5000, debug=True)

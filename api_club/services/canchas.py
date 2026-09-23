@@ -1,5 +1,5 @@
 from api_club.repositories import canchas as canchas_repo
-
+# listar canchas con filtros y paginación
 
 def listar_canchas(limit, offset, nombre=None, id_deporte=None, techada=None, activa=None):
     return canchas_repo.obtener_todas(
@@ -11,6 +11,8 @@ def listar_canchas(limit, offset, nombre=None, id_deporte=None, techada=None, ac
         activa
     )
 
+# contar el total de canchas con filtros
+
 def contar_canchas(nombre=None, id_deporte=None, techada=None, activa=None):
     return canchas_repo.contar_canchas(
         nombre,
@@ -18,6 +20,7 @@ def contar_canchas(nombre=None, id_deporte=None, techada=None, activa=None):
         techada,
         activa
     )
+# crear una nueva cancha
 
 def crear_cancha(nombre, id_deporte, precio_hora, techada, activa):
 
@@ -35,3 +38,9 @@ def crear_cancha(nombre, id_deporte, precio_hora, techada, activa):
     )
 
     return id_nueva, None
+
+# obtener los datos de una cancha por su ID
+
+def obtener_cancha_por_id(id_cancha):
+    return canchas_repo.obtener_datos_cancha(id_cancha)
+
