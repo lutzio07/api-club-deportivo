@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 
 from ..services import canchas as canchas_service
 from ..validators import canchas as canchas_validator
+from ..utils import formatear_error
 
 
 canchas_bp = Blueprint('canchas', __name__)
@@ -160,20 +161,272 @@ def crear_cancha():
         "activa": datos['activa']
     }), 201
 
+@canchas_bp.route('/canchas/disponibles', methods=['GET'])
+def consultar_disponibilidad():
+
+    parametros_permitidos = {
+        "fecha",
+        "hora_inicio",
+        "hora_fin",
+        "id_deporte",
+        "techada",
+        "_limit",
+        "_offset"
+    }
+
+    parametros_recibidos = set(request.args.keys())
+
+    parametros_desconocidos = parametros_recibidos - parametros_permitidos
+
+    if parametros_desconocidos:
+        return jsonify(formatear_error(
+            "ERROR_VALIDACION",
+            "Parámetro(s) desconocido(s)",
+            f"Los siguientes parámetros no están permitidos: {', '.join(parametros_desconocidos)}"
+        )), 400
+
+    fecha = request.args.get("fecha")
+    hora_inicio = request.args.get("hora_inicio")
+    hora_fin = request.args.get("hora_fin")
+
+    id_deporte = request.args.get("id_deporte")
+    techada = request.args.get("techada")
+
+    limit = request.args.get("_limit", default="10")
+    offset = request.args.get("_offset", default="0")
+
+    if id_deporte is not None:
+        try:
+            id_deporte = int(id_deporte)
+        except ValueError:
+            return jsonify(formatear_error(
+                "ERROR_VALIDACION",
+                "Parámetro id_deporte inválido",
+                "id_deporte debe ser un número entero."
+            )), 400
+
+    if techada is not None:
+        if techada == "true":
+            techada = True
+        elif techada == "false":
+            techada = False
+        else:
+            return jsonify(formatear_error(
+                "ERROR_VALIDACION",
+                "Parámetro techada inválido",
+                "techada debe ser true o false."
+            )), 400
+
+    try:
+        limit = int(limit)
+        offset = int(offset)
+    except ValueError:
+        return jsonify(formatear_error(
+            "ERROR_VALIDACION",
+            "Parámetros de paginación inválidos",
+            "_limit y _offset deben ser números enteros."
+        )), 400
+
+    error = canchas_validator.validar_parametros_disponibilidad(
+        fecha,
+        hora_inicio,
+        hora_fin
+    )
+
+    if error:
+        return jsonify(formatear_error(
+            "ERROR_VALIDACION",
+            "Parámetros de disponibilidad inválidos",
+            error
+        )), 400
+
+    error = canchas_validator.validar_filtros_disponibilidad(
+        id_deporte,
+        techada
+    )
+
+    if error:
+        return jsonify(formatear_error(
+            "ERROR_VALIDACION",
+            "Filtros de disponibilidad inválidos",
+            error
+        )), 400
+
+    error = canchas_validator.validar_paginacion(
+        limit,
+        offset
+    )
+
+    if error:
+        return jsonify(formatear_error(
+            "ERROR_VALIDACION",
+            "Parámetros de paginación inválidos",
+            error
+        )), 400
+
+    canchas = canchas_service.consultar_disponibilidad(
+        fecha,
+        hora_inicio,
+        hora_fin,
+        id_deporte,
+        techada,
+        limit,
+        offset
+    )
+
+    total = canchas_service.contar_disponibles(
+        fecha,
+        hora_inicio,
+        hora_fin,
+        id_deporte,
+        techada
+    )
+    if not canchas:
+        return '', 204
+
+    first_offset = 0
+
+    if total > 0:
+        last_offset = ((total - 1) // limit) * limit
+    else:
+        last_offset = 0
+
+    if offset >= limit:
+        prev_offset = offset - limit
+    else:
+        prev_offset = None
+
+    if offset + limit < total:
+        next_offset = offset + limit
+    else:
+        next_offset = None
+
+    def crear_enlace(nuevo_offset):
+        parametros = request.args.to_dict()
+        parametros["_offset"] = nuevo_offset
+
+        return f"{request.base_url}?{urlencode(parametros)}"
+
+    enlaces = {
+        "_first": crear_enlace(first_offset),
+        "_prev": crear_enlace(prev_offset) if prev_offset is not None else None,
+        "_next": crear_enlace(next_offset) if next_offset is not None else None,
+        "_last": crear_enlace(last_offset)
+    }
+
+    return jsonify({
+        "canchas": canchas,
+        "_links": enlaces
+    })
+
 @canchas_bp.route('/canchas/<id_cancha>', methods=['GET'])
 def obtener_cancha(id_cancha):
     try:
         id_cancha = int(id_cancha)
     except ValueError:
-        return jsonify({"error": "El ID debe ser un número entero."}), 400
+        return jsonify(formatear_error(
+            "ERROR_VALIDACION",
+            "El ID no es válido",
+            "El ID debe ser un número entero."
+        )), 400
+
+    if id_cancha < 1:
+        return jsonify(formatear_error(
+            "ERROR_VALIDACION",
+            "El ID no es válido",
+            "El ID debe ser un número positivo."
+        )), 400
+
     cancha = canchas_service.obtener_cancha_por_id(id_cancha)
+
     if not cancha:
-        respuesta = jsonify({"error": "No se encontró la cancha con ese id."}), 404       
-        return respuesta
-    else:
-        cancha = jsonify(cancha)
-        return cancha, 200
-    
-    
+        return jsonify(formatear_error(
+            "ERROR_NO_ENCONTRADO",
+            "Cancha no encontrada",
+            "No se encontró una cancha con el ID indicado."
+        )), 404
 
+    return jsonify(cancha), 200
 
+@canchas_bp.route('/canchas/<id_cancha>', methods=['PATCH'])
+def actualizar_cancha(id_cancha):
+
+    try:
+        id_cancha = int(id_cancha)
+    except ValueError:
+        return jsonify(formatear_error(
+            "ERROR_VALIDACION",
+            "El ID no es válido",
+            "El ID debe ser un número entero."
+        )), 400
+
+    if id_cancha < 1:
+        return jsonify(formatear_error(
+            "ERROR_VALIDACION",
+            "El ID no es válido",
+            "El ID debe ser un número positivo."
+        )), 400
+
+    datos = request.get_json(silent=True)
+
+    error = canchas_validator.validar_datos_actualizacion_cancha(datos)
+
+    if error:
+        return jsonify(formatear_error(
+            "ERROR_VALIDACION",
+            "Datos de actualización inválidos",
+            error
+        )), 400
+
+    actualizado = canchas_service.actualizar_cancha(
+        id_cancha,
+        datos
+    )
+
+    if not actualizado:
+        return jsonify(formatear_error(
+            "ERROR_NO_ENCONTRADO",
+            "Cancha no encontrada",
+            "No se encontró una cancha con el ID indicado."
+        )), 404
+
+    return '', 204
+
+@canchas_bp.route('/canchas/<id_cancha>', methods=['DELETE'])
+def eliminar_cancha(id_cancha):
+
+    try:
+        id_cancha = int(id_cancha)
+    except ValueError:
+        return jsonify(formatear_error(
+            "ERROR_VALIDACION",
+            "El ID no es válido",
+            "El ID debe ser un número entero."
+        )), 400
+
+    if id_cancha < 1:
+        return jsonify(formatear_error(
+            "ERROR_VALIDACION",
+            "El ID no es válido",
+            "El ID debe ser un número positivo."
+        )), 400
+
+    eliminado, motivo = canchas_service.eliminar_cancha(id_cancha)
+
+    if not eliminado:
+
+        if motivo == "NO_ENCONTRADA":
+            return jsonify(formatear_error(
+                "ERROR_NO_ENCONTRADO",
+                "Cancha no encontrada",
+                "No se encontró una cancha con el ID indicado."
+            )), 404
+
+        if motivo == "TIENE_RESERVAS":
+            return jsonify(formatear_error(
+                "ERROR_CONFLICTO",
+                "No se puede eliminar la cancha",
+                "La cancha tiene reservas asociadas."
+            )), 409
+
+    return '', 204
