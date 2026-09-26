@@ -1,5 +1,10 @@
 from api_club.db import obtener_conexion
 
+def convertir_cancha(cancha):
+    if cancha is not None:
+        cancha["techada"] = bool(cancha["techada"])
+        cancha["activa"] = bool(cancha["activa"])
+    return cancha
 
 def obtener_todas(limit, offset, nombre=None, id_deporte=None, techada=None, activa=None):
     conexion = obtener_conexion()
@@ -46,6 +51,9 @@ def obtener_todas(limit, offset, nombre=None, id_deporte=None, techada=None, act
     cursor.execute(consulta, parametros)
 
     canchas = cursor.fetchall()
+
+    for cancha in canchas:
+        convertir_cancha(cancha)
 
     cursor.close()
     conexion.close()
@@ -113,8 +121,10 @@ def obtener_disponibles(
     parametros.extend([limit, offset])
 
     cursor.execute(consulta, parametros)
-
     canchas_disponibles = cursor.fetchall()
+
+    for cancha in canchas_disponibles:
+        convertir_cancha(cancha)
 
     cursor.close()
     conexion.close()
@@ -275,6 +285,9 @@ def obtener_datos_cancha(id_cancha):
     cursor = conexion.cursor(dictionary=True)
     cursor.execute("SELECT * FROM canchas WHERE id = %s", (id_cancha,))
     cancha = cursor.fetchone()
+
+    convertir_cancha(cancha)
+
     cursor.close()
     conexion.close()
     return cancha

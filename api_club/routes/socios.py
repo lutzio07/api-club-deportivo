@@ -8,13 +8,47 @@ from ..validators.socios import (
 socios_bp = Blueprint('socios', __name__)
 
 @socios_bp.route('/socios', methods=['GET'])
-def get_socios():   
-    limit = request.args.get('_limit', 10, type=int)
-    offset = request.args.get('_offset', 0, type=int)
-    nombre = request.args.get('nombre') 
+def get_socios():
+
+    parametros_permitidos = {"_limit", "_offset", "nombre", "activo"}
+
+    parametros_desconocidos = set(request.args.keys()) - parametros_permitidos
+
+    if parametros_desconocidos:
+        return jsonify({
+            "error": f"Parámetro(s) desconocido(s): {', '.join(parametros_desconocidos)}"
+        }), 400
+
+    limit = request.args.get('_limit')
+    offset = request.args.get('_offset')
+
+    if limit is None:
+        limit = 10
+    else:
+        try:
+            limit = int(limit)
+        except ValueError:
+            return jsonify({"error": "El parámetro _limit debe ser un número entero"}), 400
+
+    if offset is None:
+        offset = 0
+    else:
+        try:
+            offset = int(offset)
+        except ValueError:
+            return jsonify({"error": "El parámetro _offset debe ser un número entero"}), 400
+    nombre = request.args.get('nombre')
     activo = request.args.get('activo')
+
+    if activo is not None:
+        if activo.lower() == "true":
+            activo = True
+        elif activo.lower() == "false":
+            activo = False
+        else:
+            return jsonify({"error": "El parámetro activo debe ser true o false"}), 400
     try:
-        validar_datos_socios(limit, offset, nombre, activo) 
+        validar_datos_socios(limit, offset, nombre, activo)
         socios = socios_service.get_socios(limit=limit, offset=offset, nombre=nombre, activo=activo)
         return jsonify(socios)
     except ValueError as xdd:

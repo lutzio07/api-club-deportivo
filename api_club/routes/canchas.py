@@ -94,6 +94,9 @@ def get_canchas():
         activa
     )
 
+    if not canchas:
+        return '', 204
+
     # Calcular las posiciones de las páginas
     first_offset = 0
 
@@ -119,10 +122,10 @@ def get_canchas():
         return f"{request.base_url}?{urlencode(parametros)}"
 
     enlaces = {
-        "_first": crear_enlace(first_offset),
-        "_prev": crear_enlace(prev_offset) if prev_offset is not None else None,
-        "_next": crear_enlace(next_offset) if next_offset is not None else None,
-        "_last": crear_enlace(last_offset)
+        "_first": {"href": crear_enlace(first_offset)},
+        "_prev": {"href": crear_enlace(prev_offset)} if prev_offset is not None else None,
+        "_next": {"href": crear_enlace(next_offset)} if next_offset is not None else None,
+        "_last": {"href": crear_enlace(last_offset)}
     }
 
     return jsonify({
@@ -308,10 +311,10 @@ def consultar_disponibilidad():
         return f"{request.base_url}?{urlencode(parametros)}"
 
     enlaces = {
-        "_first": crear_enlace(first_offset),
-        "_prev": crear_enlace(prev_offset) if prev_offset is not None else None,
-        "_next": crear_enlace(next_offset) if next_offset is not None else None,
-        "_last": crear_enlace(last_offset)
+        "_first": {"href": crear_enlace(first_offset)},
+        "_prev": {"href": crear_enlace(prev_offset)} if prev_offset is not None else None,
+        "_next": {"href": crear_enlace(next_offset)} if next_offset is not None else None,
+        "_last": {"href": crear_enlace(last_offset)}
     }
 
     return jsonify({

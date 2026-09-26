@@ -1,4 +1,10 @@
 from api_club.db import obtener_conexion
+
+def convertir_socio(socio):
+    if socio is not None:
+        socio["activo"] = bool(socio["activo"])
+    return socio
+
 def get_socios(limit, offset, nombre=None, activo=None):
     conexion = obtener_conexion()
     cursor = conexion.cursor(dictionary=True)
@@ -6,7 +12,7 @@ def get_socios(limit, offset, nombre=None, activo=None):
     params = []
     if nombre:
         query += " AND nombre LIKE %s"
-        params.append(f"%{nombre}")
+        params.append(f"%{nombre}%")
     if activo is not None:  
         query += (" AND activo = %s")
         params.append(activo)
@@ -15,9 +21,14 @@ def get_socios(limit, offset, nombre=None, activo=None):
     params.append(offset)
     cursor.execute(query, params)
     socios = cursor.fetchall()
-    cursor.close()  
+
+    for socio in socios:
+        convertir_socio(socio)
+
+    cursor.close()
     conexion.close()
-    return socios   
+
+    return socios
 
 
 def obtener_por_id(id_socio):
@@ -25,6 +36,7 @@ def obtener_por_id(id_socio):
     cursor = conexion.cursor(dictionary=True)
     cursor.execute("SELECT * FROM socios WHERE id = %s", (id_socio,))
     socio = cursor.fetchone()
+    socio = convertir_socio(socio)
     cursor.close()
     conexion.close()
     return socio
