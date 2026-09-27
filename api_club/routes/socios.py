@@ -1,5 +1,7 @@
 from flask import Blueprint, request, jsonify
+from urllib.parse import urlencode
 from ..services import socios as socios_service
+from ..utils import formatear_error
 from ..validators.socios import (
     validar_datos_socios,
     validar_alta_socio,
@@ -7,54 +9,59 @@ from ..validators.socios import (
 )
 socios_bp = Blueprint('socios', __name__)
 
+PARAMETROS_PERMITIDOS = {"_limit", "_offset", "nombre", "activo"}
+
 @socios_bp.route('/socios', methods=['GET'])
 def get_socios():
-
-    parametros_permitidos = {"_limit", "_offset", "nombre", "activo"}
-
-    parametros_desconocidos = set(request.args.keys()) - parametros_permitidos
-
-    if parametros_desconocidos:
-        return jsonify({
-            "error": f"Parámetro(s) desconocido(s): {', '.join(parametros_desconocidos)}"
-        }), 400
-
-    limit = request.args.get('_limit')
-    offset = request.args.get('_offset')
-
-    if limit is None:
-        limit = 10
-    else:
-        try:
-            limit = int(limit)
-        except ValueError:
-            return jsonify({"error": "El parámetro _limit debe ser un número entero"}), 400
-
-    if offset is None:
-        offset = 0
-    else:
-        try:
-            offset = int(offset)
-        except ValueError:
-            return jsonify({"error": "El parámetro _offset debe ser un número entero"}), 400
+    # Validación de parámetros
+    desconocidos = set(request.args.keys()) - PARAMETROS_PERMITIDOS
+    if desconocidos:    
+        return jsonify(formatear_error("ERROR_VALIDACION", f"Parámetro(s) no permitido(s): {', '.join(desconocidos)}", "Error de validación")), 400
+    # Paginación 
+    try:
+        limit = int(request.args.get('_limit', 10))
+        offset = int(request.args.get('_offset', 0))
+    except ValueError:
+        return jsonify(formatear_error("ERROR_VALIDACION", "Los parámetros _limit y _offset deben ser números enteros", "Error de validación")), 400
+    # Filtros 
     nombre = request.args.get('nombre')
-    activo = request.args.get('activo')
-
-    if activo is not None:
-        if activo.lower() == "true":
-            activo = True
-        elif activo.lower() == "false":
-            activo = False
-        else:
-            return jsonify({"error": "El parámetro activo debe ser true o false"}), 400
+    activo_raw = request.args.get('activo')
+    activo = None
+    
+    if activo_raw is not None:
+        if activo_raw.lower() not in ["true", "false"]:
+            return jsonify(formatear_error("ERROR_VALIDACION", "El parámetro activo debe ser true o false", "Error de validación")), 400
+        activo = activo_raw.lower() == "true"
+    
     try:
         validar_datos_socios(limit, offset, nombre, activo)
-        socios = socios_service.get_socios(limit=limit, offset=offset, nombre=nombre, activo=activo)
-        return jsonify(socios)
-    except ValueError as xdd:
-        return jsonify({"error": str(xdd)}), 400
+        socios, total = socios_service.get_socios(limit, offset, nombre, activo)
+    except ValueError as e:
+        return jsonify(formatear_error("ERROR_VALIDACION", str(e), "Error de validación")), 400
 
+    # Armado HATEOAS 
+    def crear_enlace(off):
+        params = request.args.to_dict()
+        params["_limit"] = limit
+        params["_offset"] = off
+        return f"{request.base_url}?{urlencode(params)}"
 
+    last_offset = max(0, ((total - 1) // limit) * limit) if total > 0 else 0
+    prev_offset = (offset - limit) if offset >= limit else None
+    next_offset = (offset + limit) if (offset + limit) < total else None
+
+    enlaces = {
+        "_first": {"href": crear_enlace(0)},
+        "_prev": {"href": crear_enlace(prev_offset)} if prev_offset is not None else None,
+        "_next": {"href": crear_enlace(next_offset)} if next_offset is not None else None,
+        "_last": {"href": crear_enlace(last_offset)}
+    }
+
+    return jsonify({
+        "socios": socios,
+        "_links": enlaces
+    }), 200
+           
 @socios_bp.route('/socios', methods=['POST'])
 def post_socio():
     datos = request.get_json(silent=True)

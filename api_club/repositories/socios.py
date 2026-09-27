@@ -7,29 +7,50 @@ def convertir_socio(socio):
 
 def get_socios(limit, offset, nombre=None, activo=None):
     conexion = obtener_conexion()
-    cursor = conexion.cursor(dictionary=True)
-    query = "SELECT * FROM socios WHERE 1=1"
-    params = []
-    if nombre:
-        query += " AND nombre LIKE %s"
-        params.append(f"%{nombre}%")
-    if activo is not None:  
-        query += (" AND activo = %s")
-        params.append(activo)
-    query += (" ORDER BY id LIMIT %s OFFSET %s")
-    params.append(limit)
-    params.append(offset)
-    cursor.execute(query, params)
-    socios = cursor.fetchall()
-
-    for socio in socios:
-        convertir_socio(socio)
-
-    cursor.close()
-    conexion.close()
-
-    return socios
-
+    cursor = None
+    try:
+        cursor = conexion.cursor(dictionary=True)
+        query = "SELECT * FROM socios WHERE 1=1"
+        params = []
+        if nombre:
+            query += " AND nombre LIKE %s"
+            params.append(f"%{nombre.strip()}%")
+        if activo is not None:
+            query += " AND activo = %s"
+            params.append(activo)
+        query += " ORDER BY id LIMIT %s OFFSET %s"
+        params.append(limit)
+        params.append(offset)
+        cursor.execute(query, params)
+        socios = cursor.fetchall()
+        for socio in socios:
+            convertir_socio(socio)
+        return socios
+    finally:
+        if cursor:
+            cursor.close()
+        conexion.close()
+        
+def contar_socios(nombre=None, activo=None):
+    conexion = obtener_conexion()
+    cursor = None
+    try:
+        cursor = conexion.cursor()
+        query = "SELECT COUNT(*) FROM socios WHERE 1=1"
+        params = []
+        if nombre:
+            query += " AND nombre LIKE %s"
+            params.append(f"%{nombre.strip()}%")
+        if activo is not None:
+            query += " AND activo = %s"
+            params.append(activo)
+        cursor.execute(query, params)
+        total = cursor.fetchone()[0]
+        return total
+    finally:
+        if cursor:
+            cursor.close()
+        conexion.close()
 
 def obtener_por_id(id_socio):
     conexion = obtener_conexion()

@@ -94,9 +94,6 @@ def get_canchas():
         activa
     )
 
-    if not canchas:
-        return '', 204
-
     # Calcular las posiciones de las páginas
     first_offset = 0
 
@@ -138,9 +135,12 @@ def get_canchas():
 def crear_cancha():
 
     datos = request.get_json()
-
+    # Asigna valores por defecto si techada o activa no están presentes en los datos enviados
+    if isinstance(datos, dict):
+        datos.setdefault('techada', False)
+        datos.setdefault('activa', True)
     error = canchas_validator.validar_datos_cancha(datos)
-
+    
     if error:
         return jsonify({"error": error}), 400
 
@@ -284,8 +284,7 @@ def consultar_disponibilidad():
         id_deporte,
         techada
     )
-    if not canchas:
-        return '', 204
+   
 
     first_offset = 0
 
@@ -393,7 +392,7 @@ def actualizar_cancha(id_cancha):
             "No se encontró una cancha con el ID indicado."
         )), 404
 
-    return '', 204
+    return jsonify(actualizado), 200
 
 @canchas_bp.route('/canchas/<id_cancha>', methods=['DELETE'])
 def eliminar_cancha(id_cancha):

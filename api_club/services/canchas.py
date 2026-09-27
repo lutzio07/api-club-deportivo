@@ -49,11 +49,11 @@ def actualizar_cancha(id_cancha, datos):
     cancha = canchas_repo.obtener_datos_cancha(id_cancha)
 
     if not cancha:
-        return False
+        return None
 
     canchas_repo.actualizar_cancha(id_cancha, datos)
 
-    return True
+    return canchas_repo.obtener_datos_cancha(id_cancha)
 
 def eliminar_cancha(id_cancha):
 

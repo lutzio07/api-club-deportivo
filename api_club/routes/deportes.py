@@ -1,5 +1,4 @@
-from flask import Blueprint, jsonify
-
+from flask import Blueprint, jsonify, request
 from ..services import deportes as deportes_service
 
 deportes_bp = Blueprint('deportes', __name__)
@@ -11,9 +10,8 @@ deportes_bp = Blueprint('deportes', __name__)
 
 @deportes_bp.route('/deportes', methods=['GET'])
 def get_deportes():
+    # Rechaza query params desconocidos
+    if request.args:
+        return jsonify({"error": "Parámetros no permitidos"}), 400
     deportes = deportes_service.listar_deportes()
-
-    if not deportes:
-        return '', 204
-
-    return jsonify({"deportes": deportes})
+    return jsonify({"deportes": deportes}), 200

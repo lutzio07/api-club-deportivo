@@ -1,7 +1,8 @@
 from ..repositories import socios as socios_repo
 def get_socios(limit, offset, nombre, activo):
-    return socios_repo.get_socios(limit, offset, nombre, activo)
-
+    socios = socios_repo.get_socios(limit, offset, nombre, activo)
+    total = socios_repo.contar_socios(nombre, activo)
+    return socios, total
 
 def crear_socio(nombre, email):
     if socios_repo.existe_email(email):
