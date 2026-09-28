@@ -152,3 +152,19 @@ def obtener_reserva_por_id(id_reserva):
     cursor.close()
     conexion.close()
     return reserva
+
+def actualizar_estado_reserva(id_reserva, estado):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+
+    cursor.execute(
+        "UPDATE reservas SET estado = %s WHERE id = %s AND estado = 'confirmada'",
+        (estado, id_reserva)
+    )
+    actualizada = cursor.rowcount == 1
+
+    conexion.commit()
+    cursor.close()
+    conexion.close()
+
+    return actualizada

@@ -112,3 +112,23 @@ def validar_id_reserva(id_reserva):
         )), 400
 
     return None
+
+def validar_actualizacion_estado_reserva(datos):
+    if not isinstance(datos, dict):
+        return "El body de la petición debe ser un objeto JSON"
+
+    campos_permitidos = {"estado"}
+    campos_recibidos = set(datos.keys())
+    campos_desconocidos = campos_recibidos - campos_permitidos
+
+    if campos_desconocidos:
+        return f"Campo(s) desconocido(s): {', '.join(campos_desconocidos)}"
+
+    if "estado" not in datos:
+        return "Falta el campo obligatorio: estado"
+
+    estados_permitidos = {"confirmada", "cancelada", "finalizada"}
+    if not isinstance(datos["estado"], str) or datos["estado"] not in estados_permitidos:
+        return f"estado debe ser uno de los siguientes: {', '.join(sorted(estados_permitidos))}"
+
+    return None

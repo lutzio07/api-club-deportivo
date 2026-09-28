@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from api_club.repositories import reservas as reservas_repo
 from api_club.repositories import canchas as canchas_repo
 from api_club.repositories import socios as socios_repo
@@ -63,3 +63,67 @@ def crear_reserva(datos):
 
 def obtener_reserva_por_id(id_reserva):
     return reservas_repo.obtener_reserva_por_id(id_reserva)
+
+def modificar_estado_reserva(id_reserva, estado_solicitado):
+    estados_permitidos = {"confirmada", "cancelada", "finalizada"}
+    if estado_solicitado not in estados_permitidos:
+        return None, (
+            "ERROR_VALIDACION",
+            "Estado inválido",
+            400
+        )
+
+    reserva = reservas_repo.obtener_reserva_por_id(id_reserva)
+    if not reserva:
+        return None, (
+            "ERROR_NO_ENCONTRADO",
+            "Reserva no encontrada",
+            404
+        )
+
+    if reserva["estado"] == estado_solicitado:
+        return reserva, None
+
+    if reserva["estado"] != "confirmada":
+        return None, (
+            "ERROR_CONFLICTO",
+            "No se permite cambiar el estado de una reserva terminal",
+            409
+        )
+
+    ahora_gmt_menos_3 = datetime.now(timezone(timedelta(hours=-3))).replace(tzinfo=None)
+
+    if estado_solicitado == "cancelada":
+        if ahora_gmt_menos_3 >= reserva["fecha_hora_inicio"]:
+            return None, (
+                "ERROR_CONFLICTO",
+                "La reserva solo puede cancelarse antes de su hora de inicio",
+                409
+            )
+    elif estado_solicitado == "finalizada":
+        if ahora_gmt_menos_3 < reserva["fecha_hora_fin"]:
+            return None, (
+                "ERROR_CONFLICTO",
+                "La reserva solo puede finalizarse al alcanzar su hora de fin",
+                409
+            )
+
+    actualizada = reservas_repo.actualizar_estado_reserva(id_reserva, estado_solicitado)
+    if actualizada:
+        return reservas_repo.obtener_reserva_por_id(id_reserva), None
+
+    reserva_actual = reservas_repo.obtener_reserva_por_id(id_reserva)
+    if not reserva_actual:
+        return None, (
+            "ERROR_NO_ENCONTRADO",
+            "Reserva no encontrada",
+            404
+        )
+    if reserva_actual["estado"] == estado_solicitado:
+        return reserva_actual, None
+
+    return None, (
+        "ERROR_CONFLICTO",
+        "La reserva cambió mientras se procesaba la solicitud",
+        409
+    )

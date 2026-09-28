@@ -131,3 +131,31 @@ def get_reserva(id_reserva):
         )), 404
 
     return jsonify(reserva), 200
+
+@reservas_bp.route('/reservas/<id_reserva>/estado', methods=['PUT'])
+def put_estado_reserva(id_reserva):
+    error_id = reservas_validator.validar_id_reserva(id_reserva)
+    if error_id:
+        return error_id
+
+    id_reserva = int(id_reserva)
+    datos = request.get_json(silent=True)
+    error_validacion = reservas_validator.validar_actualizacion_estado_reserva(datos)
+
+    if error_validacion:
+        return jsonify(formatear_error(
+            "ERROR_VALIDACION",
+            "Estado inválido",
+            error_validacion
+        )), 400
+
+    reserva, error = reservas_service.modificar_estado_reserva(
+        id_reserva,
+        datos["estado"]
+    )
+
+    if error:
+        codigo, mensaje, status = error
+        return jsonify(formatear_error(codigo, mensaje, mensaje)), status
+
+    return jsonify(reserva), 204
