@@ -8,7 +8,7 @@ API REST desarrollada en Python con Flask y MySQL para la gestión de reservas d
 * Joako Transillo
 * Jorge Felix Garcia
 * Eliel Castillo
-* 
+* Juan Misiac
 * Matias Ezequiel Montiel
 
 ----
