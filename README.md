@@ -23,7 +23,7 @@ API REST desarrollada en Python con Flask y MySQL para la gestión de reservas d
 * Documentación: OpenAPI 3.0 / Swagger
 
 ---
--Estructura del proyecto-
+#-Estructura del proyecto-
 
 Organizamos el proyecto en capas para separar la lógica de negocio, las rutas y las consultas a la base de datos:
 
