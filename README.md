@@ -4,7 +4,7 @@ API REST desarrollada en Python con Flask y MySQL para la gestión de reservas d
 
 -
 # -Integrantes del equipo-
-* Lucio
+* Lucio Villagra
 * Joako Transillo
 * Jorge Felix Garcia
 * Eliel Castillo
