@@ -2,7 +2,7 @@
 
 API REST desarrollada en Python con Flask y MySQL para la gestión de reservas de canchas, deportes y socios de un club deportivo.
 
--
+----
 # -Integrantes del equipo-
 * Lucio Villagra
 * Joako Transillo
@@ -11,7 +11,7 @@ API REST desarrollada en Python con Flask y MySQL para la gestión de reservas d
 * 
 * Matias Ezequiel Montiel
 
---
+----
 # -Tecnologías utilizadas-
 
 * Lenguaje: Python 3.x
