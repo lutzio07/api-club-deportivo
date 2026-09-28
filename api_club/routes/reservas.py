@@ -95,3 +95,23 @@ def get_reservas():
         "reservas": reservas,
         "_links": enlaces
     }), 200
+
+@reservas_bp.route('/reservas', methods=['POST'])
+def crear_reserva():
+
+    datos = request.get_json()
+    error_validacion = reservas_validator.validar_creacion_reserva(datos)
+
+    if error_validacion:
+        return jsonify(formatear_error(
+            "ERROR_VALIDACION",
+            "Datos invalidos",
+            error_validacion
+        )), 400
+
+    resultado, error = reservas_service.crear_reserva(datos)
+    
+    if error:
+        codigo, mensaje, status = error
+        return jsonify(formatear_error(codigo, mensaje, mensaje)), status
+    return '', 201

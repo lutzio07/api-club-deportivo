@@ -79,8 +79,67 @@ def contar_reservas(id_cancha=None, id_socio=None, estado=None, fecha_desde=None
 
     cursor.execute(consulta, parametros)
     total = cursor.fetchone()[0]
-
     cursor.close()
     conexion.close()
 
     return total
+
+def hay_superposicion_cancha(id_cancha, fecha_hora_inicio, fecha_hora_fin):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+
+    consulta = """
+        SELECT COUNT(*) FROM reservas
+        WHERE id_cancha = %s
+          AND estado = 'confirmada'
+          AND fecha_hora_inicio < %s
+          AND fecha_hora_fin > %s
+    """
+
+    cursor.execute(consulta, (id_cancha, fecha_hora_fin, fecha_hora_inicio))
+    cantidad = cursor.fetchone()[0]
+    cursor.close()
+    conexion.close()
+
+    return cantidad > 0
+
+def hay_superposicion_socio(id_socio, fecha_hora_inicio, fecha_hora_fin):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+
+    consulta = """
+        SELECT COUNT(*) FROM reservas
+        WHERE id_socio = %s
+          AND estado = 'confirmada'
+          AND fecha_hora_inicio < %s
+          AND fecha_hora_fin > %s
+    """
+
+    cursor.execute(consulta, (id_socio, fecha_hora_fin, fecha_hora_inicio))
+    cantidad = cursor.fetchone()[0]
+    cursor.close()
+    conexion.close()
+
+    return cantidad > 0
+
+def crear_reserva(id_socio, id_cancha, fecha_hora_inicio, fecha_hora_fin, precio_hora, precio_total):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+
+    consulta = """
+        INSERT INTO reservas (
+            id_socio, id_cancha, fecha_hora_inicio, fecha_hora_fin,
+            precio_hora, precio_total, estado
+        ) VALUES (%s, %s, %s, %s, %s, %s, 'confirmada')
+    """
+    cursor.execute(consulta, (
+        id_socio, id_cancha, fecha_hora_inicio, fecha_hora_fin,
+        precio_hora, precio_total
+    ))
+
+    conexion.commit()
+    id_nueva = cursor.lastrowid
+    cursor.close()
+    conexion.close()
+
+    return id_nueva

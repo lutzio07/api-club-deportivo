@@ -61,3 +61,33 @@ def validar_paginacion(limit=None, offset=None):
             return "_offset debe ser un número entero"
 
     return None
+
+def validar_creacion_reserva(datos):
+    if not isinstance(datos, dict):
+        return "El body de la peticion debe ser un objeto JSON"
+
+    campos_obligatorios = {"id_socio", "id_cancha", "fecha_hora_inicio", "fecha_hora_fin"}
+    campos_recibidos = set(datos.keys())
+    campos_desconocidos = campos_recibidos - campos_obligatorios
+    campos_faltantes = campos_obligatorios - campos_recibidos
+
+    if campos_desconocidos:
+        return f"Campo(s) desconocido(s): {', '.join(campos_desconocidos)}"
+    if campos_faltantes:
+        return f"Falta(n) campo(s) obligatorio(s): {', '.join(campos_faltantes)}"
+
+    if not isinstance(datos["id_socio"], int) or isinstance(datos["id_socio"], bool):
+        return "id_socio debe ser un número entero."
+    if datos["id_socio"] < 1:
+        return "id_socio debe ser un número positivo."
+    if not isinstance(datos["id_cancha"], int) or isinstance(datos["id_cancha"], bool):
+        return "id_cancha debe ser un número entero."
+    if datos["id_cancha"] < 1:
+        return "id_cancha debe ser un número positivo."
+    try:
+        inicio_obj = datetime.strptime(datos["fecha_hora_inicio"], "%Y-%m-%dT%H:%M:%S.%f-03:00")
+        fin_obj = datetime.strptime(datos["fecha_hora_fin"], "%Y-%m-%dT%H:%M:%S.%f-03:00")
+    except ValueError:
+        return "Las fechas deben tener el formato exacto AAAA-MM-DDTHH:MM:SS.ffffff-03:00"
+
+    return None
