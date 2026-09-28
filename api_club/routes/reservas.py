@@ -158,4 +158,4 @@ def put_estado_reserva(id_reserva):
         codigo, mensaje, status = error
         return jsonify(formatear_error(codigo, mensaje, mensaje)), status
 
-    return jsonify(reserva), 204
+    return jsonify(reserva), 200

@@ -286,8 +286,9 @@ def obtener_datos_cancha(id_cancha):
     cursor.execute("SELECT * FROM canchas WHERE id = %s", (id_cancha,))
     cancha = cursor.fetchone()
 
-    convertir_cancha(cancha)
-
+    if cancha is not None:
+        cancha = convertir_cancha(cancha)
+         
     cursor.close()
     conexion.close()
     return cancha
