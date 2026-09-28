@@ -147,7 +147,7 @@ def crear_reserva(id_socio, id_cancha, fecha_hora_inicio, fecha_hora_fin, precio
 def obtener_reserva_por_id(id_reserva):
     conexion = obtener_conexion()
     cursor = conexion.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM socios WHERE id = %s", (id_reserva,))
+    cursor.execute("SELECT * FROM reservas WHERE id = %s", (id_reserva,))
     reserva = cursor.fetchone()
     cursor.close()
     conexion.close()
