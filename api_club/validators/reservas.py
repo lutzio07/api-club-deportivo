@@ -1,4 +1,6 @@
 from datetime import datetime
+from flask import jsonify
+from ..utils import formatear_error
 
 def validar_filtros_reservas(id_cancha=None, id_socio=None, estado=None, fecha_desde=None, fecha_hasta=None):
     
@@ -89,5 +91,24 @@ def validar_creacion_reserva(datos):
         fin_obj = datetime.strptime(datos["fecha_hora_fin"], "%Y-%m-%dT%H:%M:%S.%f-03:00")
     except ValueError:
         return "Las fechas deben tener el formato exacto AAAA-MM-DDTHH:MM:SS.ffffff-03:00"
+
+    return None
+
+def validar_id_reserva(id_reserva):
+    try:
+        id_reserva = int(id_reserva)
+    except ValueError:
+        return jsonify(formatear_error(
+            "ERROR_VALIDACION",
+            "ID invalido",
+            "El id debe ser un numero entero"
+        )), 400
+    
+    if id_reserva < 1:
+        return jsonify(formatear_error(
+            "ERROR_VALIDACION",
+            "ID invalido",
+            "El id deber ser un numero positivo"
+        )), 400
 
     return None

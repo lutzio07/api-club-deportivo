@@ -60,3 +60,6 @@ def crear_reserva(datos):
     )
 
     return id_nueva, None
+
+def obtener_reserva_por_id(id_reserva):
+    return reservas_repo.obtener_reserva_por_id(id_reserva)

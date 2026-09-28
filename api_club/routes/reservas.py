@@ -115,3 +115,19 @@ def crear_reserva():
         codigo, mensaje, status = error
         return jsonify(formatear_error(codigo, mensaje, mensaje)), status
     return '', 201
+
+@reservas_bp.route('/reservas/<id_reserva>', methods=['GET'])
+def get_reserva(id_reserva):
+    error_reserva = reservas_validator.validar_id_reserva(id_reserva)
+    if error_reserva:
+        return error_reserva
+
+    reserva = reservas_service.obtener_reserva_por_id(id_reserva)
+    if not reserva:
+        return jsonify(formatear_error(
+            "ERROR_NO_ENCONTRADO",
+            "Reserva no encontrada",
+            "No se encontro una reserva con el id indicado"
+        )), 404
+
+    return jsonify(reserva), 200
